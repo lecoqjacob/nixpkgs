@@ -34,7 +34,7 @@ $pcMap{"uuid"} = "libuuid";
 $pcMap{"libudev"} = "udev";
 $pcMap{"gl"} = "libGL";
 $pcMap{"GL"} = "libGL";
-$pcMap{"gbm"} = "mesa";
+$pcMap{"gbm"} = "libgbm";
 $pcMap{"hwdata"} = "hwdata";
 $pcMap{"\$PIXMAN"} = "pixman";
 $pcMap{"\$RENDERPROTO"} = "xorgproto";
@@ -196,12 +196,6 @@ while (<>) {
         push @requires, "fontutil";
         push @{$extraAttrs{$pkg}}, "configureFlags = [ \"--with-fontrootdir=\$(out)/lib/X11/fonts\" ];";
         push @{$extraAttrs{$pkg}}, "postPatch = ''substituteInPlace configure --replace 'MAPFILES_PATH=`pkg-config' 'MAPFILES_PATH=`\$PKG_CONFIG' '';";
-    }
-
-    # libpciaccess requires pci.ids{,.gz} at runtime
-    if ($pkg eq "libpciaccess") {
-        push @requires, "hwdata";
-        push @{$extraAttrs{$pkg}}, "configureFlags = [ \"--with-pciids-path=\${hwdata}/share/hwdata\" ];";
     }
 
     if (@@ = glob("$tmpDir/*/app-defaults/")) {

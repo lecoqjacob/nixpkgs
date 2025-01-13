@@ -1,34 +1,47 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, poetry-core
-, pythonRelaxDepsHook
-, ebooklib
-, lxml
-, pillow
-, pypdf
+{
+  lib,
+  buildPythonPackage,
+  fetchFromGitHub,
+  fetchpatch2,
+  poetry-core,
+  pythonOlder,
+  ebooklib,
+  lxml,
+  pillow,
+  pypdf,
+  python-slugify,
 }:
 
 buildPythonPackage rec {
   pname = "comicon";
-  version = "1.0.1";
+  version = "1.3.0";
   pyproject = true;
+  disabled = pythonOlder "3.10";
 
   src = fetchFromGitHub {
     owner = "potatoeggy";
     repo = "comicon";
-    rev = "v${version}";
-    hash = "sha256-e9YEr8IwttMlj6FOxk+/kw79qiF1N8/e2qusfw3WH00=";
+    tag = "v${version}";
+    hash = "sha256-0AGCTnStyBVL7DVkrUFyD60xnuuO1dcl+Twdyy+uq1Y=";
   };
+
+  patches = [
+    # Upstream forgot to bump the version before tagging
+    # See https://github.com/potatoeggy/comicon/commit/d698f0f03b1a391f988176885686e9fca135676e
+    (fetchpatch2 {
+      name = "comicon-version-bump.patch";
+      url = "https://github.com/potatoeggy/comicon/commit/d698f0f03b1a391f988176885686e9fca135676e.diff";
+      hash = "sha256-ZHltw4OSYuHF8mH0kBZDsuozPy08Bm7nme+XSwfGNn8=";
+    })
+  ];
 
   nativeBuildInputs = [
     poetry-core
-    pythonRelaxDepsHook
   ];
 
   pythonRelaxDeps = [
-    "lxml"
     "pillow"
+    "pypdf"
   ];
 
   propagatedBuildInputs = [
@@ -36,7 +49,10 @@ buildPythonPackage rec {
     lxml
     pillow
     pypdf
+    python-slugify
   ];
+
+  doCheck = false; # test artifacts are not public
 
   pythonImportsCheck = [ "comicon" ];
 

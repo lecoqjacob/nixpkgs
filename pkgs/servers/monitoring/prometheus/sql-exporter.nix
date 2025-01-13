@@ -1,19 +1,29 @@
-{ lib, buildGoModule, fetchFromGitHub, go, prometheus-sql-exporter, testers }:
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+  go,
+  prometheus-sql-exporter,
+  testers,
+}:
 
 buildGoModule rec {
   pname = "sql_exporter";
-  version = "0.5.3";
+  version = "0.5.8";
 
   src = fetchFromGitHub {
     owner = "justwatchcom";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-Cp8+vVGyAwYcrBiEN1SmUnHqWFGtuypvzfDROJgOn28=";
+    sha256 = "sha256-Uf5Itclc43E8tsgS8rR8F2Dq9gNVIagoB5KfEqqd7MI=";
   };
 
   vendorHash = null;
 
-  ldflags = let t = "github.com/prometheus/common/version"; in
+  ldflags =
+    let
+      t = "github.com/prometheus/common/version";
+    in
     [
       "-X ${t}.Version=${version}"
       "-X ${t}.Revision=${src.rev}"
@@ -30,6 +40,7 @@ buildGoModule rec {
 
   meta = with lib; {
     description = "Flexible SQL exporter for Prometheus";
+    mainProgram = "sql_exporter";
     homepage = "https://github.com/justwatchcom/sql_exporter";
     license = licenses.mit;
     maintainers = with maintainers; [ justinas ];

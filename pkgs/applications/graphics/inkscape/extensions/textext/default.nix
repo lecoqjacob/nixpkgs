@@ -1,15 +1,16 @@
-{ lib
-, writeScript
-, fetchFromGitHub
-, substituteAll
-, inkscape
-, pdflatex
-, lualatex
-, python3
-, wrapGAppsHook
-, gobject-introspection
-, gtk3
-, gtksourceview3
+{
+  lib,
+  writeScript,
+  fetchFromGitHub,
+  substituteAll,
+  inkscape,
+  pdflatex,
+  lualatex,
+  python3,
+  wrapGAppsHook3,
+  gobject-introspection,
+  gtk3,
+  gtksourceview3,
 }:
 
 let
@@ -20,13 +21,13 @@ let
 in
 python3.pkgs.buildPythonApplication rec {
   pname = "textext";
-  version = "1.10.1";
+  version = "1.11.0";
 
   src = fetchFromGitHub {
     owner = "textext";
     repo = "textext";
-    rev = version;
-    sha256 = "sha256-FbUfZfVOYEyQVL1YMyNwb/sIUxJ+VhevatjuJI/ocIw=";
+    tag = version;
+    sha256 = "sha256-u0oNAauCUHNObE5Hp/X9hHcEP2wmLhcxH2aas3Mg5RY=";
   };
 
   patches = [
@@ -43,7 +44,7 @@ python3.pkgs.buildPythonApplication rec {
   ];
 
   nativeBuildInputs = [
-    wrapGAppsHook
+    wrapGAppsHook3
     gobject-introspection
   ];
 
@@ -58,6 +59,7 @@ python3.pkgs.buildPythonApplication rec {
     python3.pkgs.lxml
     python3.pkgs.cssselect
     python3.pkgs.numpy
+    python3.pkgs.tinycss2
   ];
 
   # strictDeps do not play nicely with introspection setup hooks.

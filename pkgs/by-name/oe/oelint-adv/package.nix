@@ -1,37 +1,66 @@
-{ lib
-, nix-update-script
-, python3
-, fetchPypi
+{
+  lib,
+  nix-update-script,
+  python3Packages,
+  fetchFromGitHub,
 }:
 
-python3.pkgs.buildPythonApplication rec {
+python3Packages.buildPythonApplication rec {
   pname = "oelint-adv";
-  version = "4.2.0";
-  format = "setuptools";
+  version = "6.6.6";
+  pyproject = true;
 
-  src = fetchPypi {
-    inherit version;
-    pname = "oelint_adv";
-    hash = "sha256-Yq69pZLtOdUP+ZkKA6F7KgRlmXJQiS17+ETMVjpt9iY=";
+  src = fetchFromGitHub {
+    owner = "priv-kweihmann";
+    repo = "oelint-adv";
+    tag = version;
+    hash = "sha256-vScQzj461Pw4m83581FPSgfQIkfeehCSyFioxEgpSDE=";
   };
 
-  propagatedBuildInputs = with python3.pkgs; [
+  build-system = with python3Packages; [
+    setuptools
+  ];
+
+  dependencies = with python3Packages; [
     anytree
+    argcomplete
     colorama
     oelint-parser
     urllib3
   ];
 
-  pythonRelaxDeps = [ "urllib3" ];
-  pythonImportsCheck = [ "oelint_adv" ];
+  nativeCheckInputs = with python3Packages; [
+    pytest-cov-stub
+    pytest-forked
+    pytest-xdist
+    pytestCheckHook
+  ];
 
-  # Fail to run inside the code the build.
-  doCheck = false;
+  disabledTests = [
+    # requires network access
+    "TestClassOelintVarsHomepagePing"
+  ];
+
+  pythonRelaxDeps = [
+    "argcomplete"
+    "urllib3"
+  ];
+
+  pythonImportsCheck = [ "oelint_adv" ];
 
   passthru.updateScript = nix-update-script { };
 
+  postPatch = ''
+    substituteInPlace setup.cfg \
+      --replace-fail "--random-order-bucket=global" "" \
+      --replace-fail "--random-order"               "" \
+      --replace-fail "--force-sugar"                "" \
+      --replace-fail "--old-summary"                ""
+  '';
+
   meta = with lib; {
     description = "Advanced bitbake-recipe linter";
+    mainProgram = "oelint-adv";
     homepage = "https://github.com/priv-kweihmann/oelint-adv";
     changelog = "https://github.com/priv-kweihmann/oelint-adv/releases/tag/v${version}";
     license = licenses.bsd2;

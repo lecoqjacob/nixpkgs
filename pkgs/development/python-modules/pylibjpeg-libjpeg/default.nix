@@ -1,47 +1,51 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, pythonOlder
-, pytestCheckHook
-, cython
-, numpy
+{
+  lib,
+  buildPythonPackage,
+  fetchFromGitHub,
+  pythonOlder,
+  pytestCheckHook,
+  cython,
+  poetry-core,
+  setuptools,
+  numpy,
 }:
 
 buildPythonPackage rec {
   pname = "pylibjpeg-libjpeg";
-  version = "1.3.4";
-  format = "setuptools";
+  version = "2.3.0";
+  pyproject = true;
 
-  disabled = pythonOlder "3.7";
+  disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "pydicom";
     repo = pname;
-    rev = "refs/tags/v${version}";
-    hash = "sha256-VmqeoMU8riLpWyC+yKqq56TkruxOie6pjbg+ozivpBk=";
+    tag = "v${version}";
+    hash = "sha256-xqSA1cutTsH9k4l9CW96n/CURzkAyDi3PZylZeedVjA=";
     fetchSubmodules = true;
   };
 
-  nativeBuildInputs = [
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail 'poetry-core >=1.8,<2' 'poetry-core'
+  '';
+
+  build-system = [
     cython
+    poetry-core
+    setuptools
   ];
 
-  propagatedBuildInputs = [
-    numpy
-  ];
+  dependencies = [ numpy ];
 
-  nativeCheckInputs = [
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
-  doCheck = false;  # tests try to import 'libjpeg.data', which errors
+  doCheck = false; # tests try to import 'libjpeg.data', which errors
 
-  pythonImportsCheck = [
-    "libjpeg"
-  ];
+  pythonImportsCheck = [ "libjpeg" ];
 
   meta = with lib; {
-    description = "A JPEG, JPEG-LS and JPEG XT plugin for pylibjpeg";
+    description = "JPEG, JPEG-LS and JPEG XT plugin for pylibjpeg";
     homepage = "https://github.com/pydicom/pylibjpeg-libjpeg";
     changelog = "https://github.com/pydicom/pylibjpeg-libjpeg/releases/tag/v${version}";
     license = licenses.gpl3Only;
