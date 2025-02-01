@@ -1,26 +1,30 @@
-{ lib
-, buildGoModule
-, fetchFromGitHub
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
 }:
 buildGoModule rec {
   pname = "nom";
-  version = "2.1.1";
+  version = "2.7.3";
 
   src = fetchFromGitHub {
     owner = "guyfedwards";
     repo = "nom";
-    rev = "v${version}";
-    hash = "sha256-yemEq61oUzoOrBZ7e6djNxbw/QqR5Fuhi1Y12n/AdrU=";
+    tag = "v${version}";
+    hash = "sha256-kCvNUvU3fR3v/uRPl3y9HlNXMartNb23kfj1YYY2BWg=";
   };
 
-  vendorHash = "sha256-fP6yxfIQoVaBC9hYcrCyo3YP3ntEVDbDTwKMO9TdyDI=";
+  vendorHash = "sha256-d5KTDZKfuzv84oMgmsjJoXGO5XYLVKxOB5XehqgRvYw=";
 
   meta = with lib; {
     homepage = "https://github.com/guyfedwards/nom";
     description = "RSS reader for the terminal";
     platforms = platforms.linux ++ platforms.darwin;
     license = licenses.gpl3Only;
-    maintainers = with maintainers; [ nadir-ishiguro ];
+    maintainers = with maintainers; [
+      nadir-ishiguro
+      matthiasbeyer
+    ];
     mainProgram = "nom";
   };
 }

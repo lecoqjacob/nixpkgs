@@ -1,43 +1,60 @@
-{ lib
-, aiohttp
-, aiomqtt
-, buildPythonPackage
-, cachetools
-, defusedxml
-, docker
-, fetchFromGitHub
-, numpy
-, pillow
-, pycountry
-, pytest-asyncio
-, pytestCheckHook
-, pythonOlder
-, setuptools
-, setuptools-scm
-, svg-py
-, testfixtures
+{
+  lib,
+  aiohttp,
+  aiomqtt,
+  buildPythonPackage,
+  cachetools,
+  defusedxml,
+  docker,
+  fetchFromGitHub,
+  numpy,
+  pillow,
+  pkg-config,
+  pycountry,
+  pytest-asyncio,
+  pytest-codspeed,
+  pytestCheckHook,
+  pythonOlder,
+  rustPlatform,
+  svg-py,
+  testfixtures,
+  xz,
 }:
 
 buildPythonPackage rec {
   pname = "deebot-client";
-  version = "5.1.1";
+  version = "11.1.0b2";
   pyproject = true;
 
-  disabled = pythonOlder "3.11";
+  disabled = pythonOlder "3.12";
 
   src = fetchFromGitHub {
     owner = "DeebotUniverse";
     repo = "client.py";
-    rev = "refs/tags/${version}";
-    hash = "sha256-axz31GboqaWAcBU8DtG700Se6rX7VV7eBrQBDazG+Ig=";
+    tag = version;
+    hash = "sha256-nvuIjVf7r2CcuHWyIox1P8nuBB4DReV6jrwr4SLJhHA=";
   };
 
-  nativeBuildInputs = [
-    setuptools
-    setuptools-scm
+  cargoDeps = rustPlatform.fetchCargoTarball {
+    inherit pname version src;
+    hash = "sha256-KmY8fWvfEkCx+Q3OOgqI/5+PCr3ZNYAHweabwIBd+DA=";
+  };
+
+  pythonRelaxDeps = [
+    "aiohttp"
+    "defusedxml"
   ];
 
-  propagatedBuildInputs = [
+  build-system = with rustPlatform; [
+    cargoSetupHook
+    maturinBuildHook
+  ];
+
+  nativeBuildInputs = [ pkg-config ];
+
+  buildInputs = [ xz ];
+
+  dependencies = [
     aiohttp
     aiomqtt
     cachetools
@@ -51,13 +68,16 @@ buildPythonPackage rec {
     docker
     pycountry
     pytest-asyncio
+    pytest-codspeed
     pytestCheckHook
     testfixtures
   ];
 
-  pythonImportsCheck = [
-    "deebot_client"
-  ];
+  preCheck = ''
+    rm -rf deebot_client
+  '';
+
+  pythonImportsCheck = [ "deebot_client" ];
 
   disabledTests = [
     # Tests require running container

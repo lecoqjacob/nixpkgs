@@ -1,4 +1,10 @@
-{ stdenv, lib, fetchFromGitHub, runCommandLocal }:
+{
+  stdenv,
+  lib,
+  fetchFromGitHub,
+  runCommandLocal,
+  mbrola-voices,
+}:
 
 let
   pname = "mbrola";
@@ -12,20 +18,6 @@ let
     homepage = "https://github.com/numediart/MBROLA";
   };
 
-  # Very big (0.65 G) so kept as a fixed-output derivation to limit "duplicates".
-  voices = fetchFromGitHub {
-    owner = "numediart";
-    repo = "MBROLA-voices";
-    rev = "fe05a0ccef6a941207fd6aaad0b31294a1f93a51";  # using latest commit
-    sha256 = "1w0y2xjp9rndwdjagp2wxh656mdm3d6w9cs411g27rjyfy1205a0";
-
-    name = "${pname}-voices-${version}";
-    meta = meta // {
-      description = "Speech synthesizer based on the concatenation of diphones (voice files)";
-      homepage = "https://github.com/numediart/MBROLA-voices";
-    };
-  };
-
   bin = stdenv.mkDerivation {
     pname = "${pname}-bin";
     inherit version;
@@ -37,8 +29,21 @@ let
       sha256 = "1w86gv6zs2cbr0731n49z8v6xxw0g8b0hzyv2iqb9mqcfh38l8zy";
     };
 
+    postPatch = ''
+      substituteInPlace Makefile \
+        --replace-fail 'O6' 'O3'
+      substituteInPlace Misc/common.h \
+        --replace-fail '|| defined(TARGET_OS_MAC)' ""
+      substituteInPlace Misc/common.c \
+        --replace-fail '|| defined(TARGET_OS_MAC)' ""
+    '';
+
     # required for cross compilation
     makeFlags = [ "CC=${stdenv.cc.targetPrefix}cc" ];
+
+    env = lib.optionalAttrs stdenv.cc.isGNU {
+      NIX_CFLAGS_COMPILE = "-Wno-error=implicit-function-declaration";
+    };
 
     installPhase = ''
       runHook preInstall
@@ -53,14 +58,12 @@ let
   };
 
 in
-  runCommandLocal
-    "${pname}-${version}"
-    {
-      inherit pname version meta;
-    }
-    ''
-      mkdir -p "$out/share/mbrola"
-      ln -s '${voices}/data' "$out/share/mbrola/voices"
-      ln -s '${bin}/bin' "$out/"
-    ''
-
+runCommandLocal "${pname}-${version}"
+  {
+    inherit pname version meta;
+  }
+  ''
+    mkdir -p "$out/share/mbrola"
+    ln -s '${mbrola-voices}/data' "$out/share/mbrola/voices"
+    ln -s '${bin}/bin' "$out/"
+  ''
